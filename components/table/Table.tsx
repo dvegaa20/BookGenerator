@@ -14,6 +14,7 @@ import {
   TableRow,
 } from "../ui/table";
 import { CollapsibleRow } from "./CollapsibleRow";
+import { Loader } from "lucide-react";
 
 export function CollapsibleTable() {
   const [selectedRegion, setSelectedRegion] = useState("en");
@@ -21,23 +22,35 @@ export function CollapsibleTable() {
   const [likes, setLikes] = useState(500);
   const [reviews, setReviews] = useState(5);
   const [books, setBooks] = useState<Book[]>([]);
+  const [page, setPage] = useState(0);
+  const [loading, setLoading] = useState(false);
 
-  const generateRandomSeed = () => {
-    const randomSeed = Math.floor(Math.random() * 1000000);
-    setSeed(randomSeed);
-  };
+  const generateRandomSeed = () => setSeed(Math.floor(Math.random() * 1000000));
 
   useEffect(() => {
+    setBooks([]);
+    setPage(0);
     fetchBooks();
   }, [selectedRegion, seed, likes, reviews]);
 
+  useEffect(() => {
+    if (page === 0) return;
+
+    fetchBooks();
+  }, [page]);
+
   const fetchBooks = async () => {
+    if (loading) return;
+    setLoading(true);
+
     const response = await fetch(
-      `/api/books?region=${selectedRegion}&seed=${seed}&page=0&likes=${likes}&reviews=${reviews}`
+      `/api/books?region=${selectedRegion}&seed=${seed}&page=${page}&likes=${likes}&reviews=${reviews}`
     );
     const data = await response.json();
-    setBooks(
-      data.map((book: any) => ({
+
+    setBooks((prevBooks) => [
+      ...prevBooks,
+      ...data.map((book: any) => ({
         title: book.title,
         author: book.author,
         index: book.index,
@@ -49,47 +62,70 @@ export function CollapsibleTable() {
         rating: book.rating,
         reviews: book.reviews,
         reviewAuthors: book.reviewAuthors,
-      }))
-    );
+      })),
+    ]);
+
+    setLoading(false);
   };
 
+  useEffect(() => {
+    const handleScroll = () => {
+      if (
+        window.innerHeight + window.scrollY >=
+          document.body.offsetHeight - 50 &&
+        !loading
+      ) {
+        setPage((prevPage) => prevPage + 1);
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [loading]);
+
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead colSpan={6} className="p-4">
-            <div className="flex w-full items-center justify-center space-x-24">
-              <LanguageSelector
-                selectedRegion={selectedRegion}
-                onChange={setSelectedRegion}
-                regions={RegionOptions}
-              />
-              <SeedInput
-                seed={seed}
-                onChange={setSeed}
-                onGenerate={generateRandomSeed}
-              />
-              <SliderLikes likes={likes} onChange={setLikes} />
-              <NumberReviews reviews={reviews} onChange={setReviews} />
-            </div>
-          </TableHead>
-        </TableRow>
+    <div>
+      {loading && (
+        <div className="flex justify-center items-center h-[100px]">
+          <Loader className="animate-spin" size={150} />{" "}
+        </div>
+      )}
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead colSpan={6} className="p-4">
+              <div className="flex w-full items-center justify-center space-x-24">
+                <LanguageSelector
+                  selectedRegion={selectedRegion}
+                  onChange={setSelectedRegion}
+                  regions={RegionOptions}
+                />
+                <SeedInput
+                  seed={seed}
+                  onChange={setSeed}
+                  onGenerate={generateRandomSeed}
+                />
+                <SliderLikes likes={likes} onChange={setLikes} />
+                <NumberReviews reviews={reviews} onChange={setReviews} />
+              </div>
+            </TableHead>
+          </TableRow>
+          <TableRow>
+            <TableHead className="w-[50px]"></TableHead>
+            <TableHead className="w-[50px]">#</TableHead>
+            <TableHead className="w-[250px]">ISBN</TableHead>
+            <TableHead className="w-[250px]">Title</TableHead>
+            <TableHead className="w-[250px]">Author(s)</TableHead>
+            <TableHead className="w-[250px]">Publisher</TableHead>
+          </TableRow>
+        </TableHeader>
 
-        <TableRow>
-          <TableHead className="w-[50px]"></TableHead>
-          <TableHead className="w-[50px]">#</TableHead>
-          <TableHead className="w-[250px]">ISBN</TableHead>
-          <TableHead className="w-[250px]">Title</TableHead>
-          <TableHead className="w-[250px]">Author(s)</TableHead>
-          <TableHead className="w-[250px]">Publisher</TableHead>
-        </TableRow>
-      </TableHeader>
-
-      <TableBody>
-        {books.map((book, index) => (
-          <CollapsibleRow key={index} book={book} />
-        ))}
-      </TableBody>
-    </Table>
+        <TableBody>
+          {books.map((book, index) => (
+            <CollapsibleRow key={index} book={book} />
+          ))}
+        </TableBody>
+      </Table>
+    </div>
   );
 }
