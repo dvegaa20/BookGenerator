@@ -1,7 +1,7 @@
-import { faker, fakerEN, fakerDE, fakerFR } from "@faker-js/faker";
+import { faker, fakerEN_US, fakerDE, fakerFR } from "@faker-js/faker";
 
 const locales: Record<string, any> = {
-  en: fakerEN,
+  en: fakerEN_US,
   de: fakerDE,
   fr: fakerFR,
 };
