@@ -36,8 +36,8 @@ export const CollapsibleRow: React.FC<{ book: Book }> = ({ book }) => {
       {isOpen && (
         <TableRow>
           <TableCell colSpan={6} className="bg-muted/100">
-            <h4 className="text-2xl font-semibold mt-6 ml-4 text-gray-800">
-              Additional Details
+            <h4 className="capitalize text-2xl font-semibold mt-6 ml-4 text-gray-800">
+              {book.title}
             </h4>
             <div className="flex gap-6">
               <div className="w-[40%]">
@@ -50,6 +50,7 @@ export const CollapsibleRow: React.FC<{ book: Book }> = ({ book }) => {
                 />
               </div>
               <div className="w-[85%] space-y-4">
+                <p className="text-lg">Additional Details</p>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="flex items-center text-gray-600">
                     <Calendar className="w-5 h-5 mr-2" />
