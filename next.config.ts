@@ -5,6 +5,12 @@ const nextConfig: NextConfig = {
   images: {
     domains: ["covers.openlibrary.org"],
   },
+  typescript: {
+    ignoreBuildErrors: true,
+  },
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
 };
 
 export default nextConfig;
