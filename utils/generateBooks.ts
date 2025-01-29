@@ -1,6 +1,10 @@
-import { Faker, en, de, fr } from "@faker-js/faker";
+import { faker, fakerEN, fakerDE, fakerFR } from "@faker-js/faker";
 
-const locales: Record<string, any> = { en, de, fr };
+const locales: Record<string, any> = {
+  en: fakerEN,
+  de: fakerDE,
+  fr: fakerFR,
+};
 
 export function generateBooks({
   seed,
@@ -9,20 +13,26 @@ export function generateBooks({
   reviews,
   page,
 }: GenerateBooksParams): Book[] {
-  const localizedFaker = new Faker({ locale: locales[region] });
+  faker.seed(seed + page);
 
-  localizedFaker.seed(seed + page);
+  const localizedFaker = locales[region] || locales["en"];
 
-  return Array.from({ length: 40 }, (_, index) => {
-    const titleLength = localizedFaker.number.int({ min: 2, max: 5 });
+  return Array.from({ length: 20 }, (_, index) => {
     const book: Book = {
-      index: index + 1 + page * 20,
-      isbn: localizedFaker.string.numeric(13),
-      title: localizedFaker.lorem.words(titleLength),
-      authors: [localizedFaker.person.fullName()],
+      index: index + 1 + page * 10,
+      isbn: localizedFaker.commerce.isbn(),
+      title: localizedFaker.word.words(2),
+      authors: localizedFaker.person.fullName(),
+      publishedYear: localizedFaker.date
+        .between({ from: "1930-01-01", to: "2025-12-31" })
+        .getFullYear(),
       publisher: localizedFaker.company.name(),
-      likes: Math.random() < likes / 10 ? Math.ceil(likes) : 0,
-      reviews: Math.random() < reviews / 10 ? Math.ceil(reviews) : 0,
+      likes: localizedFaker.number.int({ min: likes, max: likes + 50 }),
+      rating: reviews,
+      reviews: Array.from({ length: 3 }, () => ({
+        author: localizedFaker.person.fullName(),
+        text: localizedFaker.lorem.sentence(),
+      })),
     };
 
     return book;
